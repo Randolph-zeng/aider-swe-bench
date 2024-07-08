@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 import lox
+sys.path.append("/home/llm/aider-swe-bench/aider")
 from aider.coders import Coder
 from aider.io import InputOutput
 from aider.models import Model, register_litellm_models
@@ -220,7 +221,7 @@ def process_one_instance(entry, num_tries, models, temperature, model_name_or_pa
         for model in models:
             dump(attempt, model)
 
-            with tempfile.TemporaryDirectory(dir="/mnt/aider") as git_tempdir:
+            with tempfile.TemporaryDirectory(dir="/tmp/aider") as git_tempdir:
                 dump(git_tempdir)
                 checkout_repo(git_tempdir, entry)
 
@@ -464,30 +465,28 @@ def main():
     # models = ["openrouter/anthropic/claude-3-opus"]
     # models = ["gpt-4o"]
     # models = ["gpt-4-1106-preview"]
-    models = ["openrouter/anthropic/claude-3.5-sonnet"]
+    # models = ["openrouter/anthropic/claude-3.5-sonnet"]
     # models = ["claude-3-5-sonnet-20240620"]
+    models = ["openai//dataset/pretrained-models/DeepSeek-Coder-V2-Lite-Instruct"]
 
     # How many attempts per model to try and find a plausible solutions?
     num_tries = 1
-
+    # How many threads to use for attempting instances in parallel
+    threads = 1
     # What temperature to use during chat completions
     temperature = 0
+
+    just_devin_570 = False
+
+    # if just_devin_570:
+    #     # Filter it to the Devin 570
+    #     devin_insts = get_devin_instance_ids()
+    #     dataset = dict((inst, entry) for inst, entry in dataset.items() if inst in devin_insts)
 
     # Load the SWE Bench dataset
     # dataset = get_full_dataset()
     dataset = get_lite_dataset()
-
-    just_devin_570 = False
-
-    if just_devin_570:
-        # Filter it to the Devin 570
-        devin_insts = get_devin_instance_ids()
-        dataset = dict((inst, entry) for inst, entry in dataset.items() if inst in devin_insts)
-
-    #dataset = {"sympy__sympy-18532" : dataset["sympy__sympy-18532"]}
-
-    # How many threads to use for attempting instances in parallel
-    threads = 10
+    dataset = {"sympy__sympy-18532" : dataset["sympy__sympy-18532"]}
 
     # Any predictions/ dirs provided on the command line are treated
     # as earlier, higher priority runs.  If a plausible solution was
